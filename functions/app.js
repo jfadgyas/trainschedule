@@ -23,7 +23,7 @@ app.use('/train', trainRoute)
 
 // Connect to DB
 try {
-    await Mongoose.connect(process.env.URI,
+    Mongoose.connect(process.env.URI,
         {
             useNewUrlParser: true,
             useUnifiedTopology: true
