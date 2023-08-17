@@ -7,6 +7,16 @@ const router = express.Router()
 router.get('/:id', async (req, res) => {
     try{
         const train = await Train.findOne({_id: req.params.id})
+        
+        // const start = new Date(0, 0, 0, train.stations[0].data[2], train.stations[0].data[3])
+        // const end = new Date(0, 0, 0, train.stations[0].
+        
+        // const departure = new Date(0, 0, 0, train.stations[0].)
+        // const traffic = await Train.find({
+
+        // })
+
+
         res.json(train)
     }
     catch(err) {
