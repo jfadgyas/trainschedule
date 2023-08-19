@@ -78343,7 +78343,13 @@ var router2 = import_express2.default.Router();
 router2.get("/:id", async (req, res) => {
   try {
     const train = await train_default.findOne({ _id: req.params.id });
-    res.json(train);
+    const destinationIndex = train.stations.length - 1;
+    let traffic = await train_default.find({
+      _id: { $ne: train._id },
+      line: train.line
+    });
+    traffic = traffic.filter((item) => +item.stations[0].data[2] <= +train.stations[0].data[2] && +item.stations[0].data[3] <= +train.stations[0].data[3] && (+item.stations[destinationIndex].data[2] >= +train.stations[destinationIndex].data[2] && +item.stations[destinationIndex].data[3] >= +train.stations[destinationIndex].data[3]) || +item.stations[destinationIndex].data[2] <= train.stations[destinationIndex].data[0] && +item.stations[destinationIndex].data[3] <= train.stations[destinationIndex].data[1]);
+    res.json({ train, traffic });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
