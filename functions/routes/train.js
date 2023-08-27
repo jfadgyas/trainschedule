@@ -24,7 +24,7 @@ router.get('/:id', async (req, res) => {
         const train = await Train.findOne({_id: req.params.id})
         const line = await Line.findOne({_id: train.line})
 
-        // const destinationIndex = train.stations.length - 1
+        // Destination of the player train
         const destination = train.stations[train.stations.length - 1].station
         
         // Easier to use filter at the moment
@@ -34,20 +34,29 @@ router.get('/:id', async (req, res) => {
         })
 
         traffic = traffic.filter(item => {
-            const destinationIndex = item.stations.findIndex(station => station.station === destination)
+
+            // Departure and destination indexes of the traffic
+            const departureIndex = item.stations.findIndex(station => station.station === destination)
+            const destinationIndex = item.stations.findIndex(station => station.station === train.stations[0].station)
+
             if (
                 // Starts before player && arrives after
                 (
                     (+item.stations[0].data[2] <= +train.stations[0].data[2] &&
                     +item.stations[0].data[3] <= +train.stations[0].data[3])
                     &&
-                    (+item.stations[destinationIndex].data[0] >= +train.stations[destinationIndex].data[0] &&
-                    +item.stations[destinationIndex].data[1] >= +train.stations[destinationIndex].data[1])
+                    (+item.stations[departureIndex].data[0] >= +train.stations[train.stations.length - 1].data[0] &&
+                    +item.stations[departureIndex].data[1] >= +train.stations[train.stations.length - 1].data[1])
                 )
                 ||
                 // Starts from destination before player arrival
-                (+item.stations[destinationIndex].data[2] <= train.stations[destinationIndex].data[0] &&
-                +item.stations[destinationIndex].data[3] <= train.stations[destinationIndex].data[1])
+                (
+                    (+item.stations[departureIndex].data[2] <= train.stations[train.stations.length - 1].data[0] &&
+                    +item.stations[departureIndex].data[3] <= train.stations[train.stations.length - 1].data[1])
+                    &&
+                    (+item.stations[destinationIndex].data[0] >= +train.stations[0].data[2] &&
+                    +item.stations[destinationIndex].data[1] >= +train.stations[0].data[3])
+                )
             ) return item
         })
 
@@ -70,6 +79,7 @@ router.post('/', async (req, res) => {
     }
 })
 
+// Modify train details
 router.patch('/:id', async (req, res) => {
     try{
         await Train.findOneAndUpdate(
