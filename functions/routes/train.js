@@ -51,9 +51,9 @@ router.get('/:id', async (req, res) => {
                 ||
 
                 // // Starts after player && arrives before
-                (trafficDeparture >= playerDeparture && trafficArrive <= playerArrive)
+                // (trafficDeparture >= playerDeparture && trafficArrive <= playerArrive)
 
-                ||
+                // ||
 
                 // Starts from destination before player arrival, arrives befor player starts
                 (trafficDeparture <= playerArrive && trafficArrive >= playerDeparture)                
