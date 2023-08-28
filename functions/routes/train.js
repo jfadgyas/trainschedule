@@ -24,8 +24,11 @@ router.get('/:id', async (req, res) => {
         const train = await Train.findOne({_id: req.params.id})
         const line = await Line.findOne({_id: train.line})
 
-        // Destination of the player train
-        const destination = train.stations[train.stations.length - 1].station
+        // Stations and travel times of the player train
+        const playerStart = train.stations[0].station
+        const playerDestination = train.stations[train.stations.length - 1].station
+        const playerDeparture = new Date(0, 0, 0, train.stations[0].data[2], train.stations[0].data[3])
+        const playerArrive = new Date(0, 0, 0, train.stations[train.stations.length - 1].data[0], train.stations[train.stations.length - 1].data[1])
         
         // Easier to use filter at the moment
         let traffic = await Train.find({
@@ -36,27 +39,24 @@ router.get('/:id', async (req, res) => {
         traffic = traffic.filter(item => {
 
             // Departure and destination indexes of the traffic
-            const departureIndex = item.stations.findIndex(station => station.station === destination)
-            const destinationIndex = item.stations.findIndex(station => station.station === train.stations[0].station)
+            const trafficStart = item.stations.findIndex(station => station.station === playerDestination)
+            const trafficDestination = item.stations.findIndex(station => station.station === playerStart)
+            const trafficDeparture = new Date(0, 0, 0, item.stations[trafficStart].data[2], item.stations[trafficStart].data[3])
+            const trafficArrive = new Date(0, 0, 0, item.stations[trafficDestination].data[0], item.stations[trafficDestination].data[1])
 
             if (
                 // Starts before player && arrives after
-                (
-                    (+item.stations[0].data[2] <= +train.stations[0].data[2] &&
-                    +item.stations[0].data[3] <= +train.stations[0].data[3])
-                    &&
-                    (+item.stations[departureIndex].data[0] >= +train.stations[train.stations.length - 1].data[0] &&
-                    +item.stations[departureIndex].data[1] >= +train.stations[train.stations.length - 1].data[1])
-                )
+                (trafficDeparture <= playerDeparture && trafficArrive >= playerArrive)
+
                 ||
-                // Starts from destination before player arrival
-                (
-                    (+item.stations[departureIndex].data[2] <= train.stations[train.stations.length - 1].data[0] &&
-                    +item.stations[departureIndex].data[3] <= train.stations[train.stations.length - 1].data[1])
-                    &&
-                    (+item.stations[destinationIndex].data[0] >= +train.stations[0].data[2] &&
-                    +item.stations[destinationIndex].data[1] >= +train.stations[0].data[3])
-                )
+
+                // // Starts after player && arrives before
+                (trafficDeparture >= playerDeparture && trafficArrive <= playerArrive)
+
+                ||
+
+                // Starts from destination before player arrival, arrives befor player starts
+                (trafficDeparture <= playerArrive && trafficArrive >= playerDeparture)                
             ) return item
         })
 
